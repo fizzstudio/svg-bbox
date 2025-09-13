@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transformed Shapes</title>
+
+  <style>
+    svg {
+      width: 500px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Transformed Shapes</h1>
+  <svg id="svg-extents" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+
+    <title>transformed shapes</title>
+
+    <script href="./findGeometry.js"> </script>
+
+    <style>
+      .ui {
+        pointer-events: none;
+      }
+    </style>
+
+
+
+    <rect id="bg" class="ui" x="0" y="0" width="100%" height="100%" fill="none" stroke="red" />
+    <g id="annotation_layer" class="ui">
+
+    </g>
+
+
+    <circle id="circle_1" cx="100" cy="50" r="20" fill="lime" stroke="green" stroke-width="8" />
+
+    <circle transform="translate(50,0)" id="circle_2" cx="50" cy="100" r="20" fill="gold" stroke="orange" />
+
+    <g id="transformed_group-1" transform="translate(50,50)">
+      <circle id="circle_3" cx="50" cy="100" r="20" fill="cornflowerblue" stroke="blue" />
+    </g>
+
+    <g id="transformed_group-2" transform="translate(50,50)">
+      <circle transform="translate(0,50)" id="circle_4" cx="50" cy="100" r="20" fill="pink" stroke="red" />
+    </g>
+
+
+  </svg>
+</body>
+
+</html>
