@@ -22,14 +22,16 @@ class FindGeometry {
   }
 
   findShapes() {
-    const shapeList = this.root.querySelectorAll('line, circle, ellipse, rect, polyline, polygon, path, use');
+    /*const shapeList = this.root.querySelectorAll('line, circle, ellipse, rect, polyline, polygon, path, use');
     // console.log('shapeList', shapeList);
     shapeList.forEach(shape => {
       if (!shape.classList.contains('ui')) {
         // console.log('shape', shape);
         this.showBBox(shape);
       }
-    });
+    });*/
+    const circle2 = document.getElementById('circle_2');
+    this.showBBox(circle2);
   }
 
   showBBox( el ) {
@@ -45,7 +47,11 @@ class FindGeometry {
     const offset = 2;
     const bboxStyle = `fill: none; stroke: ${stroke}; stroke-dasharray: 5 5; stroke-linecap: round;`;
 
-    this.drawBox(bbox.x - offset, bbox.y - offset, bbox.width + (offset*2), bbox.height + (offset*2), bboxStyle, this.annotationLayer);
+    const box = this.drawBox(bbox.x - offset, bbox.y - offset, bbox.width + (offset*2), bbox.height + (offset*2), bboxStyle, this.annotationLayer);
+    const boxTransform = box.ownerSVGElement.createSVGTransform();
+    boxTransform.matrix.e = 50;
+    console.log('boxTransform', boxTransform);
+    box.transform.baseVal.appendItem(boxTransform);
   }
 
 //   getNormalized(shape, bbox, ctm, offset) {
@@ -81,7 +87,6 @@ class FindGeometry {
     const box = document.createElementNS(this.svgns, 'rect');
     box.setAttribute('style', style);
     // box.setAttribute('style', 'fill:red');
-
     box.setAttribute('x', x);
     box.setAttribute('y', y);
     box.setAttribute('width', width);
@@ -93,5 +98,6 @@ class FindGeometry {
     // console.log('parent', parent);
 
     parent.append(box);
+    return box;
   }
 }
