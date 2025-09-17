@@ -1,4 +1,10 @@
-window.addEventListener('load', () => new FindGeometry());
+window.addEventListener('load', () => {
+  window.fg = new FindGeometry();
+});
+
+document.addEventListener('click', (e) => {
+  console.log(`(${e.clientX}, ${e.clientY})`);
+});
 
 class FindGeometry {
   constructor() {
@@ -22,66 +28,71 @@ class FindGeometry {
   }
 
   findShapes() {
-    /*const shapeList = this.root.querySelectorAll('line, circle, ellipse, rect, polyline, polygon, path, use');
+    const shapeList = this.root.querySelectorAll('line, circle, ellipse, rect, polyline, polygon, path, use');
     // console.log('shapeList', shapeList);
     shapeList.forEach(shape => {
       if (!shape.classList.contains('ui')) {
         // console.log('shape', shape);
         this.showBBox(shape);
       }
-    });*/
-    const circle2 = document.getElementById('circle_2');
-    this.showBBox(circle2);
+    });
+    // const circle2 = document.getElementById('circle_2');
+    // this.showBBox(circle2);
   }
 
-  showBBox( el ) {
+  showBBox(el) {
     const bbox = el.getBBox();
     console.log('bbox', bbox);
-    const ctm = el.getCTM();
-    console.log('ctm', ctm);
+
+    const points = [
+      { x: bbox.x, y: bbox.y },
+      { x: bbox.x + bbox.width, y: bbox.y },
+      { x: bbox.x + bbox.width, y: bbox.y + bbox.height },
+      { x: bbox.x, y: bbox.y + bbox.height }
+    ];
+    const transformed = points.map(({ x, y }) => {
+      return this.transformToElement(el, this.annotationLayer, x, y);
+    });
+
+    const newX = transformed[0].x;
+    const newY = transformed[0].y;
+    const newWidth = transformed[1].x - transformed[0].x;
+    const newHeight = transformed[2].y - transformed[1].y;
 
     const stroke = el.getAttribute('stroke');
-    
-    // const x = this.getNormalized(bbox.x);
-    
+
     const offset = 2;
     const bboxStyle = `fill: none; stroke: ${stroke}; stroke-dasharray: 5 5; stroke-linecap: round;`;
 
-    const box = this.drawBox(bbox.x - offset, bbox.y - offset, bbox.width + (offset*2), bbox.height + (offset*2), bboxStyle, this.annotationLayer);
-    const boxTransform = box.ownerSVGElement.createSVGTransform();
-    boxTransform.matrix.e = 50;
-    console.log('boxTransform', boxTransform);
-    box.transform.baseVal.appendItem(boxTransform);
+    const box = this.drawBox(
+      newX - offset,
+      newY - offset,
+      newWidth + (offset * 2),
+      newHeight + (offset * 2),
+      bboxStyle,
+      this.annotationLayer
+    );
   }
 
-//   getNormalized(shape, bbox, ctm, offset) {
-//     let coord = this.root.createSVGPoint();
-//     this.rootCTM
+  transformToElement(fromElem, toElem, x, y) {
+    const fromCTM = fromElem.getCTM();
+    const toCTM = toElem.getCTM();
+    const p = new DOMPoint(x, y);
+    const transformMatrix = toCTM.inverse().multiply(fromCTM);
+    return p.matrixTransform(transformMatrix);
+  }
 
-//     var bbox = elem.getBBox();
-// var mat = elem.screenCTM(); // could also be tranformToElement
-// var cPt = document.getRootElement().createSVGPoint();
-// cPt.x = bbox.x;
-// cPt.y = bbox.y;
-// cPt = cPt.matrixTransform(mat);
-// // repeat for other corner points and the new bbox is
-// // simply the minX/minY to maxX/maxY of the four points.
+  localToScreen(elem, x, y) {
+    const mat = elem.getScreenCTM();
+    const p = new DOMPoint(x, y);
+    return p.matrixTransform(mat);
+  }
 
-// // elem.getScreenCTM().inverse().multiply(this.getScreenCTM());
-
-// 1. Get the element's local bounding box: Call element.getBBox() to get the bounding box in the element's own coordinate system.
-// 2. Get the element's CTM: Call element.getCTM() to get the transformation matrix that maps the element's local coordinates to the SVG viewport's coordinate system.
-// 3. Get the inverse of the target coordinate system's CTM: If you want the bounding box relative to the SVG root, you'll need svgElement.getScreenCTM().inverse(). If it's relative to a parent element, you might use parentElement.getScreenCTM().inverse().
-// 4. Transform the bounding box corners: Create SVGPoint objects for each corner of the getBBox() result and apply the combined transformation matrix (element's CTM multiplied by the inverse of the target CTM) using matrixTransform().
-// 5. Calculate the new bounding box: Determine the minimum and maximum x and y values from the transformed corner points to construct the final bounding box in the desired coordinate system. 
-
-// https://stackoverflow.com/questions/53635449/get-absolute-coordinates-of-element-inside-svg-using-js
-
-// https://www.sitepoint.com/how-to-translate-from-dom-to-svg-coordinates-and-back-again/
-// https://codepen.io/craigbuckler/pen/RwRdjEq
-
-
-//   }
+  screenToLocal(elem, x, y) {
+    const mat = elem.getScreenCTM();
+    const p = new DOMPoint(x, y);
+    return p.matrixTransform(mat.inverse());
+  }
 
   drawBox(x, y, width, height, style, parent) {
     const box = document.createElementNS(this.svgns, 'rect');
